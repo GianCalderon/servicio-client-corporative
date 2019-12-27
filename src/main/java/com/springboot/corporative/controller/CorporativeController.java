@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.corporative.document.Account;
 import com.springboot.corporative.document.Corporative;
+import com.springboot.corporative.dto.CorporativeDto;
 import com.springboot.corporative.service.CorporativeInterface;
 
 import reactor.core.publisher.Flux;
@@ -52,19 +54,20 @@ public class CorporativeController {
 	}
 
 	@PostMapping
-	public Mono<ResponseEntity<Corporative>> save(@RequestBody Corporative corporative) {
-	
+	public Mono<ResponseEntity<Corporative>> save(@RequestBody Corporative Corporative) {
 
-		return service.save(corporative).map(e->ResponseEntity.created(URI.create("/api/corporative"))
+		return service.save(Corporative).map(e->ResponseEntity.created(URI.create("/api/Corporative"))
 				.contentType(MediaType.APPLICATION_JSON).body(e));
 
 	}
 
 	@PutMapping("/{id}")
-	public Mono<ResponseEntity<Corporative>> update(@RequestBody Corporative corporative, @PathVariable String id) {
+	public Mono<ResponseEntity<Corporative>> update(@RequestBody CorporativeDto CorporativeDto, @PathVariable String id) {
 
-		return service.update(corporative, id).map(e->ResponseEntity
-						.created(URI.create("/api/corporative".concat(e.getId())))
+		LOGGER.info("Empresa Recibida para Actualizar :--->"+CorporativeDto.toString());
+		
+		return service.update(CorporativeDto, id).map(e->ResponseEntity
+						.created(URI.create("/api/Corporative".concat(e.getId())))
 						.contentType(MediaType.APPLICATION_JSON)
 						.body(e))
 				.defaultIfEmpty(ResponseEntity.notFound().build());
@@ -82,15 +85,35 @@ public class CorporativeController {
 		
 	}
 	
-//	@PostMapping("/saveDto")
-//	public Mono<ResponseEntity<Enterprise>> save(@RequestBody EnterpriseDto enterpriseDto) {
-//	
-//		LOGGER.info("EnterpriceController: "+enterpriseDto.toString());
-//
-//		return service.saveDto(enterpriseDto).map(e->ResponseEntity.created(URI.create("/api/enterprise"))
-//				.contentType(MediaType.APPLICATION_JSON).body(e));
-//
-//	}
+	@PostMapping("/saveCorporative")
+	public Mono<ResponseEntity<Corporative>> saveDto(@RequestBody CorporativeDto CorporativeDto) {
+	
+		LOGGER.info("Empresa Recibida :--->"+CorporativeDto.toString());
+
+		return service.saveDto(CorporativeDto).map(e->ResponseEntity.created(URI.create("/api/Corporative"))
+				.contentType(MediaType.APPLICATION_JSON).body(e));
+
+	}
+	
+	  @GetMapping("/doc/{ruc}")
+	  public Mono<ResponseEntity<Corporative>> searchRuc(@PathVariable String ruc) {
+
+	    return service.findByNumDoc(ruc).map(p -> ResponseEntity.ok()
+	      .contentType(MediaType.APPLICATION_JSON).body(p))
+	      .defaultIfEmpty(ResponseEntity.notFound().build());
+
+	  }
+	
+	  @GetMapping("/valid/{ruc}")
+	  public Flux<Account> valid(@PathVariable String dni) {
+	   
+	    return service.findByNumDoc(dni).flatMapMany(cuentas ->{ 
+
+	    	return Flux.fromIterable(cuentas.getListAccount());
+	    		
+	    });	
+	    	
+	  }
 
 
 }
